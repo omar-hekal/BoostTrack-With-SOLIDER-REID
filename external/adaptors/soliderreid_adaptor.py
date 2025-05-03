@@ -19,7 +19,10 @@ class SoliderReID(torch.nn.Module):
 
     def forward(self, batch):
         # Uses half during training
-        batch = batch.half().cuda()
+        if not batch.is_cuda:
+            batch = batch.cuda()
+        if batch.dtype != torch.float16:
+            batch = batch.half()
         with torch.no_grad():
             features = self.model(batch)
         
