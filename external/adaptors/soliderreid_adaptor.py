@@ -15,7 +15,7 @@ class SoliderReID(torch.nn.Module):
         self.model.cuda()
 
         self.model.load_param(cfg.TEST.WEIGHT)
-        self.model = self.model.float()
+        self.model = self.model.half()
 
     def forward(self, batch):
         # Uses half during training
