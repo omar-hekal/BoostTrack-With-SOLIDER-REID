@@ -31,7 +31,9 @@ class SoliderReID(torch.nn.Module):
         print(f"After processing - Device: {batch.device}, Dtype: {batch.dtype}, Shape: {batch.shape}")
 
         with torch.no_grad():
-            features = self.model(batch)
+            # Use mixed precision to handle operations requiring float32
+            with torch.cuda.amp.autocast(enabled=True):
+                features = self.model(batch)
 
         # Normalize features (common in ReID tasks)
         return features
