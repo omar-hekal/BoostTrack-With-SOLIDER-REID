@@ -21,4 +21,8 @@ class SoliderReID(torch.nn.Module):
         # Uses half during training
         # batch = batch.half()
         with torch.no_grad():
-            return self.model(batch)
+            features = self.model(batch)
+        
+        # Normalize features (common in ReID tasks)
+        features = torch.nn.functional.normalize(features, p=2, dim=1)
+        return features
