@@ -11,6 +11,7 @@ import numpy as np
 import torch.nn as nn
 
 from external.adaptors.fastreid_adaptor import FastReID
+from external.adaptors.soliderreid_adaptor import SoliderReID
 
 class OSNetReID(nn.Module):
     def __init__(self, model_name='osnet_ain_x1_0', embedding_dim=256, pretrained=True):
@@ -201,10 +202,12 @@ class EmbeddingComputer:
         elif self.dataset == "dance":
             path = "external/weights/dance_sbs_S50.pth"
         else:
-            return self._get_general_model()
+            # return self._get_general_model()
+            path = self.reid_path
             
 
-        model = FastReID(path)
+        # model = FastReID(path)
+        model = SoliderReID(path)
         model.eval()
         model.cuda()
         model.half()
