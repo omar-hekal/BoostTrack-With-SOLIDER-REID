@@ -19,7 +19,7 @@ class SoliderReID(torch.nn.Module):
 
     def forward(self, batch):
         # Uses half during training
-        batch = batch.half()
+        batch = batch.half().cuda()
         with torch.no_grad():
             features = self.model(batch)
         
