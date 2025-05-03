@@ -10,7 +10,7 @@ class SoliderReID(torch.nn.Module):
         config_file = "external/solider_reid/configs/iust/swin_small.yml"
         cfg.merge_from_file(config_file)
         cfg.TEST.WEIGHT = weights_path
-        self.model = make_model(cfg, num_class=0, camera_num=1, view_num = 1,)
+        self.model = make_model(cfg, num_class=0, camera_num=1, view_num = 1,semantic_weight = cfg.MODEL.SEMANTIC_WEIGHT)
         self.model.eval()
         self.model.cuda()
 
