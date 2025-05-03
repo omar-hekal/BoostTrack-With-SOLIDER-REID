@@ -13,15 +13,15 @@ class SoliderReID(torch.nn.Module):
         self.model = make_model(cfg, num_class=0, camera_num=1, view_num = 1,semantic_weight = cfg.MODEL.SEMANTIC_WEIGHT)
         self.model.eval()
         self.model.cuda()
-        self.model.float()
 
         self.model.load_param(cfg.TEST.WEIGHT)
-        # self.model = self.model.half()
+        self.model = self.model.half()
 
     def forward(self, batch):
         # Uses half during training
-        # batch = batch.half()
+        batch = batch.half()
         with torch.no_grad():
             features = self.model(batch)
         
+        # Normalize features (common in ReID tasks)
         return features
