@@ -696,11 +696,12 @@ class WindowMSA(BaseModule):
         q = q * self.scale
         attn = (q @ k.transpose(-2, -1))
 
+        # Ensure relative_position_bias matches the input tensor's dtype
         relative_position_bias = self.relative_position_bias_table[
             self.relative_position_index.view(-1)].view(
                 self.window_size[0] * self.window_size[1],
                 self.window_size[0] * self.window_size[1],
-                -1)  # Wh*Ww,Wh*Ww,nH
+                -1).to(x.dtype)  # Cast to the same dtype as x
         relative_position_bias = relative_position_bias.permute(
             2, 0, 1).contiguous()  # nH, Wh*Ww, Wh*Ww
         attn = attn + relative_position_bias.unsqueeze(0)
@@ -708,7 +709,7 @@ class WindowMSA(BaseModule):
         if mask is not None:
             nW = mask.shape[0]
             attn = attn.view(B // nW, nW, self.num_heads, N,
-                             N) + mask.unsqueeze(1).unsqueeze(0)
+                             N) + mask.unsqueeze(1).unsqueeze(0).to(x.dtype)  # Cast mask to x's dtype
             attn = attn.view(-1, self.num_heads, N, N)
         attn = self.softmax(attn)
 
@@ -718,7 +719,6 @@ class WindowMSA(BaseModule):
         x = self.proj(x)
         x = self.proj_drop(x)
         return x
-
     @staticmethod
     def double_step_seq(step1, len1, step2, len2):
         seq1 = torch.arange(0, step1 * len1, step1)
@@ -1360,10 +1360,13 @@ class SwinTransformer(BaseModule):
             print('unloaded parameters:', res)
 
     def forward(self, x, semantic_weight=None):
-        if self.semantic_weight >= 0 and semantic_weight == None:
-            w = torch.ones(x.shape[0],1) * self.semantic_weight
-            w = torch.cat([w, 1-w], axis=-1)
-            semantic_weight = w.cuda()
+        if self.semantic_weight >= 0 and semantic_weight is None:
+            w = torch.ones(x.shape[0], 1, device=x.device) * self.semantic_weight
+            w = torch.cat([w, 1 - w], axis=-1)
+            semantic_weight = w
+
+        # Ensure semantic_weight matches the model's dtype
+        semantic_weight = semantic_weight.to(x.dtype)
 
         x, hw_shape = self.patch_embed(x)
 
